@@ -12,8 +12,6 @@ import {
 import dotenv from 'dotenv';
 dotenv.config();
 
-// valid for launching with npm
-// const OUTPUT_JSON = './public/chunks-manifest.json';
 const FOLDER_PATH = './public/chunks';
 const LOCAL_MANIFEST_PATH = './public/chunks-manifest.json';
 const REMOTE_MANIFEST_KEY = 'chunks-manifest.json';
@@ -78,11 +76,11 @@ async function downloadManifestFromS3() {
     return manifest;
   } catch (e) {
     console.warn('Old manifest not found in S3 or error:', e.message);
-    return [];
+    return null;
   }
 }
 
-async function generateManifest() {
+async function generateChunksMetadata() {
   const files = await fs.readdir(FOLDER_PATH);
   const manifest = [];
 
@@ -94,7 +92,7 @@ async function generateManifest() {
     const hash = await getFileHash(fullPath);
     const match = fileName.match(/^(x\d+y\d+)/);
     const chunkName = match ? match[1] : null;
-    const ext = path.extname(fileName).slice(1); // убираем точку
+    const ext = path.extname(fileName).slice(1);
 
     manifest.push({
       fileName,
@@ -105,7 +103,19 @@ async function generateManifest() {
       ext,
     });
   }
+
   return manifest;
+}
+
+function generateManifestWrapper(chunksMetadata) {
+  const tempString = JSON.stringify(chunksMetadata);
+  const manifestHash = crypto.createHash('sha256').update(tempString).digest('hex');
+
+  return {
+    generatedAt: new Date().toISOString(),
+    manifestHash,
+    chunksMetadata,
+  };
 }
 
 async function uploadManifestToS3(manifest) {
@@ -124,49 +134,38 @@ async function uploadManifestToS3(manifest) {
 }
 
 async function main() {
-  // Скачиваем старый манифест из S3
   const oldManifest = await downloadManifestFromS3();
+  const oldChunks = oldManifest?.chunksMetadata || [];
 
-  // Генерируем новый локальный манифест
-  const newManifest = await generateManifest();
+  const chunksMetadata = await generateChunksMetadata();
+  const finalManifest = generateManifestWrapper(chunksMetadata);
 
-  // Сравниваем и удаляем устаревшие файлы из S3
-  const newFilesMap = new Map(newManifest.map((f) => [`${f.chunkName}-${f.ext}`,f.hash
-  ]));
-  const newFilesNames = newManifest.map((f) => f.fileName);
-  const filesToDelete = oldManifest.filter(
-    (f) =>
-    {
-      if (!newFilesNames.includes(f.fileName)) {
-        console.log('there is no file in new with such name, need to delete: ', `${f.fileName} ${f.chunkName}-${f.ext}`);
-        return true
-      }
-      /*
-      короче тут нужно написать логику которая будет смотреть
-      есть ли у нас такой же чанк на сервере с таким же форматом но с другим хешем
-      если есть то мы его удаляем
-      */
-      const oldFileExists = newFilesMap.has(`${f.chunkName}-${f.ext}`)
+  // Логика удаления устаревших файлов:
+  const newFilesMap = new Map(chunksMetadata.map((f) => [`${f.chunkName}-${f.ext}`, f.hash]));
+  const newFilesNames = chunksMetadata.map((f) => f.fileName);
 
-      if (oldFileExists) {
-        if (f.hash !== newFilesMap.get(`${f.chunkName}-${f.ext}`)) {
-          // hash changed, need to delete
-          console.log('hash changed, need to delete: ', `${f.fileName} ${f.chunkName}-${f.ext}`);
-          return true
-        }
-      }
-    },
-  );
+  const filesToDelete = oldChunks.filter((f) => {
+    if (!newFilesNames.includes(f.fileName)) {
+      console.log('File missing, need to delete:', f.fileName);
+      return true;
+    }
+    const exists = newFilesMap.has(`${f.chunkName}-${f.ext}`);
+    if (exists && newFilesMap.get(`${f.chunkName}-${f.ext}`) !== f.hash) {
+      console.log('Hash changed, need to delete:', f.fileName);
+      return true;
+    }
+    return false;
+  });
 
-  console.log('filesToDelete: ', filesToDelete);
+  console.log('Files to delete:', filesToDelete.map(f => f.fileName));
+
   for (const file of filesToDelete) {
     const key = S3_PREFIX + file.fileName;
     await deleteFileFromS3(key);
   }
 
-  // Загружаем новые и изменённые файлы
-  for (const file of newManifest) {
-    const oldFile = oldManifest.find((f) => f.fileName === file.fileName);
+  for (const file of chunksMetadata) {
+    const oldFile = oldChunks.find((f) => f.fileName === file.fileName);
     if (oldFile && oldFile.hash === file.hash) {
       console.log(`Skipped upload (unchanged): ${file.fileName}`);
       continue;
@@ -176,17 +175,16 @@ async function main() {
     await uploadFileToS3(filePath, key);
   }
 
-  // Сохраняем локальный манифест (опционально)
   await fs.writeFile(
     LOCAL_MANIFEST_PATH,
-    JSON.stringify(newManifest, null, 2),
+    JSON.stringify(finalManifest, null, 2),
     'utf-8',
   );
   console.log(`Local manifest saved to ${LOCAL_MANIFEST_PATH}`);
 
-  // Загружаем новый манифест в S3
-  await uploadManifestToS3(newManifest);
+  await uploadManifestToS3(finalManifest);
 }
+
 main().catch((err) => {
   console.error('Error in upload process:', err);
   process.exit(1);
