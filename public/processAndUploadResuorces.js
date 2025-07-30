@@ -158,24 +158,40 @@ async function processResourceFolder(
 
   await uploadManifestToS3(finalManifest, remoteManifestKey);
 
-  // === Добавляем файлы в registry ===
-  for (const file of filesMetadata) {
-    const relPath = path.relative(ROOT_RESOURCES_PATH, path.join(localPath, file.fileName));
-    const parts = relPath.split(path.sep);
+//   // === Добавляем файлы в registry ===
+//   for (const file of filesMetadata) {
+//     const relPath = path.relative(ROOT_RESOURCES_PATH, path.join(localPath, file.fileName));
+//     const parts = relPath.split(path.sep);
+
+//     let node = registry;
+//     for (let i = 0; i < parts.length; i++) {
+//       const part = parts[i].replace(/\.[^/.]+$/, ''); // Без расширения
+//       if (i === parts.length - 1) {
+//         // Последний элемент — файл
+//         node[part] = relPath.replace(/\\/g, '/'); // нормализуем слеши
+//       } else {
+//         if (!node[part]) node[part] = {};
+//         node = node[part];
+//       }
+//     }
+//   }
+// === Добавляем файлы в registry ===
+for (const file of filesMetadata) {
+    const parts = [file.fileName.replace(/\.[^/.]+$/, '')]; // имя файла без расширения
 
     let node = registry;
     for (let i = 0; i < parts.length; i++) {
-      const part = parts[i].replace(/\.[^/.]+$/, ''); // Без расширения
+      const part = parts[i];
       if (i === parts.length - 1) {
-        // Последний элемент — файл
-        node[part] = relPath.replace(/\\/g, '/'); // нормализуем слеши
+        // Финальный узел — пишем путь
+        const relPath = path.relative(ROOT_RESOURCES_PATH, path.join(localPath, file.fileName)).replace(/\\/g, '/');
+        node[part] = relPath;
       } else {
         if (!node[part]) node[part] = {};
         node = node[part];
       }
     }
   }
-
   // === Рекурсивно подпапки ===
   const entries = await fs.readdir(localPath, { withFileTypes: true });
   for (const entry of entries) {
