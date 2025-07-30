@@ -13,6 +13,7 @@ dotenv.config();
 
 const ROOT_RESOURCES_PATH = './public/resources';
 const BUCKET_NAME = process.env.AWS_S3_BUCKET;
+const OUTPUT_RESOURCES_TS = './public/resources.ts';
 
 const s3 = new S3Client({
   region: process.env.NEXT_PUBLIC_AWS_REGION,
@@ -72,7 +73,7 @@ async function generateFolderMetadata(folderPath) {
 
   for (const entry of entries) {
     if (entry.isDirectory()) continue;
-    if (entry.name === 'manifest.json') continue; // ⛔️ игнорируем свой манифест
+    if (entry.name === 'manifest.json') continue;
 
     const fileName = entry.name;
     const fullPath = path.join(folderPath, fileName);
@@ -94,10 +95,7 @@ async function generateFolderMetadata(folderPath) {
 }
 
 function wrapManifest(files) {
-  const manifestHash = crypto
-    .createHash('sha256')
-    .update(JSON.stringify(files))
-    .digest('hex');
+  const manifestHash = crypto.createHash('sha256').update(JSON.stringify(files)).digest('hex');
   return {
     generatedAt: new Date().toISOString(),
     manifestHash,
@@ -117,7 +115,12 @@ async function uploadManifestToS3(manifest, s3Key) {
   console.log(`Manifest uploaded: ${s3Key}`);
 }
 
-async function processResourceFolder(localPath, s3Prefix) {
+// Рекурсивный обход + наполнение registry
+async function processResourceFolder(
+  localPath,
+  s3Prefix,
+  registry
+) {
   console.log(`Processing: ${localPath}`);
 
   const remoteManifestKey = `${s3Prefix}manifest.json`;
@@ -127,7 +130,6 @@ async function processResourceFolder(localPath, s3Prefix) {
   const filesMetadata = await generateFolderMetadata(localPath);
   const finalManifest = wrapManifest(filesMetadata);
 
-  // ✅ Локальное сохранение
   const localManifestPath = path.join(localPath, 'manifest.json');
   await fs.writeFile(localManifestPath, JSON.stringify(finalManifest, null, 2), 'utf-8');
   console.log(`Local manifest saved: ${localManifestPath}`);
@@ -156,19 +158,46 @@ async function processResourceFolder(localPath, s3Prefix) {
 
   await uploadManifestToS3(finalManifest, remoteManifestKey);
 
-  // ✅ Рекурсивно обходим подпапки
+  // === Добавляем файлы в registry ===
+  for (const file of filesMetadata) {
+    const relPath = path.relative(ROOT_RESOURCES_PATH, path.join(localPath, file.fileName));
+    const parts = relPath.split(path.sep);
+
+    let node = registry;
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i].replace(/\.[^/.]+$/, ''); // Без расширения
+      if (i === parts.length - 1) {
+        // Последний элемент — файл
+        node[part] = relPath.replace(/\\/g, '/'); // нормализуем слеши
+      } else {
+        if (!node[part]) node[part] = {};
+        node = node[part];
+      }
+    }
+  }
+
+  // === Рекурсивно подпапки ===
   const entries = await fs.readdir(localPath, { withFileTypes: true });
   for (const entry of entries) {
     if (entry.isDirectory()) {
       const subfolderPath = path.join(localPath, entry.name);
       const subfolderS3Prefix = `${s3Prefix}${entry.name}/`;
-      await processResourceFolder(subfolderPath, subfolderS3Prefix);
+
+      if (!registry[entry.name]) registry[entry.name] = {};
+      await processResourceFolder(subfolderPath, subfolderS3Prefix, registry[entry.name]);
     }
   }
 }
 
 async function main() {
-  await processResourceFolder(ROOT_RESOURCES_PATH, '');
+  const registry = {};
+  await processResourceFolder(ROOT_RESOURCES_PATH, '', registry);
+
+  const content =
+    `export const RESOURCES = ${JSON.stringify(registry, null, 2)};\n`;
+
+  await fs.writeFile(OUTPUT_RESOURCES_TS, content, 'utf-8');
+  console.log(`✅ resources.ts generated: ${OUTPUT_RESOURCES_TS}`);
 }
 
 main().catch(err => {
