@@ -1,0 +1,146 @@
+[
+  {
+    "fileName": "x0y0-terrain copy.glb",
+    "size": 174932,
+    "lastModified": "2025-07-24T06:53:54.462Z",
+    "hash": "746ca14d7d2e7ea9e2f553527e0895f168a56d455f253d95e9d5544c276452c1",
+    "chunkName": "x0y0",
+    "ext": "glb"
+  },
+  {
+    "fileName": "x0y0-terrain-texture.png",
+    "size": 1107435,
+    "lastModified": "2025-07-23T19:44:43.421Z",
+    "hash": "15b1e0b7e0464baf37d67c4cd2cf3955d21d8701453e2d321af3449b8ea7bde2",
+    "chunkName": "x0y0",
+    "ext": "png"
+  },
+  {
+    "fileName": "x0y1-terrain-texture.png",
+    "size": 1107435,
+    "lastModified": "2025-07-23T19:44:43.421Z",
+    "hash": "15b1e0b7e0464baf37d67c4cd2cf3955d21d8701453e2d321af3449b8ea7bde2",
+    "chunkName": "x0y1",
+    "ext": "png"
+  },
+  {
+    "fileName": "x0y1-terrain.glb",
+    "size": 174932,
+    "lastModified": "2025-07-24T06:53:54.462Z",
+    "hash": "746ca14d7d2e7ea9e2f553527e0895f168a56d455f253d95e9d5544c276452c1",
+    "chunkName": "x0y1",
+    "ext": "glb"
+  },
+  {
+    "fileName": "x0y2-terrain-texture.png",
+    "size": 1107435,
+    "lastModified": "2025-07-23T19:44:43.421Z",
+    "hash": "15b1e0b7e0464baf37d67c4cd2cf3955d21d8701453e2d321af3449b8ea7bde2",
+    "chunkName": "x0y2",
+    "ext": "png"
+  },
+  {
+    "fileName": "x0y2-terrain.glb",
+    "size": 174932,
+    "lastModified": "2025-07-24T06:53:54.462Z",
+    "hash": "746ca14d7d2e7ea9e2f553527e0895f168a56d455f253d95e9d5544c276452c1",
+    "chunkName": "x0y2",
+    "ext": "glb"
+  },
+  {
+    "fileName": "x1y0-terrain-texture.png",
+    "size": 1107435,
+    "lastModified": "2025-07-23T19:44:43.421Z",
+    "hash": "15b1e0b7e0464baf37d67c4cd2cf3955d21d8701453e2d321af3449b8ea7bde2",
+    "chunkName": "x1y0",
+    "ext": "png"
+  },
+  {
+    "fileName": "x1y0-terrain.glb",
+    "size": 174932,
+    "lastModified": "2025-07-24T06:53:54.462Z",
+    "hash": "746ca14d7d2e7ea9e2f553527e0895f168a56d455f253d95e9d5544c276452c1",
+    "chunkName": "x1y0",
+    "ext": "glb"
+  },
+  {
+    "fileName": "x1y1-terrain-texture.png",
+    "size": 1107435,
+    "lastModified": "2025-07-23T19:44:43.421Z",
+    "hash": "15b1e0b7e0464baf37d67c4cd2cf3955d21d8701453e2d321af3449b8ea7bde2",
+    "chunkName": "x1y1",
+    "ext": "png"
+  },
+  {
+    "fileName": "x1y1-terrain.glb",
+    "size": 174932,
+    "lastModified": "2025-07-24T06:53:54.462Z",
+    "hash": "746ca14d7d2e7ea9e2f553527e0895f168a56d455f253d95e9d5544c276452c1",
+    "chunkName": "x1y1",
+    "ext": "glb"
+  },
+  {
+    "fileName": "x1y2-terrain-texture.png",
+    "size": 1107435,
+    "lastModified": "2025-07-23T19:44:43.421Z",
+    "hash": "15b1e0b7e0464baf37d67c4cd2cf3955d21d8701453e2d321af3449b8ea7bde2",
+    "chunkName": "x1y2",
+    "ext": "png"
+  },
+  {
+    "fileName": "x1y2-terrain.glb",
+    "size": 174932,
+    "lastModified": "2025-07-24T06:53:54.462Z",
+    "hash": "746ca14d7d2e7ea9e2f553527e0895f168a56d455f253d95e9d5544c276452c1",
+    "chunkName": "x1y2",
+    "ext": "glb"
+  },
+  {
+    "fileName": "x2y0-terrain-texture.png",
+    "size": 1107435,
+    "lastModified": "2025-07-23T19:44:43.421Z",
+    "hash": "15b1e0b7e0464baf37d67c4cd2cf3955d21d8701453e2d321af3449b8ea7bde2",
+    "chunkName": "x2y0",
+    "ext": "png"
+  },
+  {
+    "fileName": "x2y0-terrain.glb",
+    "size": 174932,
+    "lastModified": "2025-07-24T06:53:54.462Z",
+    "hash": "746ca14d7d2e7ea9e2f553527e0895f168a56d455f253d95e9d5544c276452c1",
+    "chunkName": "x2y0",
+    "ext": "glb"
+  },
+  {
+    "fileName": "x2y1-terrain-texture.png",
+    "size": 1107435,
+    "lastModified": "2025-07-23T19:44:43.421Z",
+    "hash": "15b1e0b7e0464baf37d67c4cd2cf3955d21d8701453e2d321af3449b8ea7bde2",
+    "chunkName": "x2y1",
+    "ext": "png"
+  },
+  {
+    "fileName": "x2y1-terrain.glb",
+    "size": 174932,
+    "lastModified": "2025-07-24T06:53:54.462Z",
+    "hash": "746ca14d7d2e7ea9e2f553527e0895f168a56d455f253d95e9d5544c276452c1",
+    "chunkName": "x2y1",
+    "ext": "glb"
+  },
+  {
+    "fileName": "x2y2-terrain-texture.png",
+    "size": 1107435,
+    "lastModified": "2025-07-23T19:44:43.421Z",
+    "hash": "15b1e0b7e0464baf37d67c4cd2cf3955d21d8701453e2d321af3449b8ea7bde2",
+    "chunkName": "x2y2",
+    "ext": "png"
+  },
+  {
+    "fileName": "x2y2-terrain.glb",
+    "size": 174932,
+    "lastModified": "2025-07-24T06:53:54.462Z",
+    "hash": "746ca14d7d2e7ea9e2f553527e0895f168a56d455f253d95e9d5544c276452c1",
+    "chunkName": "x2y2",
+    "ext": "glb"
+  }
+]
