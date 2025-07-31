@@ -19,7 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "uploadNewChunks": "dotenv node public/processAndUploadChunks.js",
-    "uploadNewResources": "dotenv node public/processAndUploadResuorces.js"
+    "uploadNewResources": "dotenv node scripts/processAndUploadResuorces.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
