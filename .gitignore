@@ -59,3 +59,4 @@ chunks/
 public/resources/
 temp chunks/
 public/chunks-manifest.json
+public/resources.ts

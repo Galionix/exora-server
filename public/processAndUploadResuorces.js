@@ -95,7 +95,10 @@ async function generateFolderMetadata(folderPath) {
 }
 
 function wrapManifest(files) {
-  const manifestHash = crypto.createHash('sha256').update(JSON.stringify(files)).digest('hex');
+  const manifestHash = crypto
+    .createHash('sha256')
+    .update(JSON.stringify(files))
+    .digest('hex');
   return {
     generatedAt: new Date().toISOString(),
     manifestHash,
@@ -116,11 +119,7 @@ async function uploadManifestToS3(manifest, s3Key) {
 }
 
 // Рекурсивный обход + наполнение registry
-async function processResourceFolder(
-  localPath,
-  s3Prefix,
-  registry
-) {
+async function processResourceFolder(localPath, s3Prefix, registry, flatPaths) {
   console.log(`Processing: ${localPath}`);
 
   const remoteManifestKey = `${s3Prefix}manifest.json`;
@@ -131,11 +130,15 @@ async function processResourceFolder(
   const finalManifest = wrapManifest(filesMetadata);
 
   const localManifestPath = path.join(localPath, 'manifest.json');
-  await fs.writeFile(localManifestPath, JSON.stringify(finalManifest, null, 2), 'utf-8');
+  await fs.writeFile(
+    localManifestPath,
+    JSON.stringify(finalManifest, null, 2),
+    'utf-8',
+  );
   console.log(`Local manifest saved: ${localManifestPath}`);
 
-  const newFilesMap = new Map(filesMetadata.map(f => [f.fileName, f.hash]));
-  const filesToDelete = oldFiles.filter(f => {
+  const newFilesMap = new Map(filesMetadata.map((f) => [f.fileName, f.hash]));
+  const filesToDelete = oldFiles.filter((f) => {
     const newHash = newFilesMap.get(f.fileName);
     return !newHash || newHash !== f.hash;
   });
@@ -146,7 +149,12 @@ async function processResourceFolder(
   }
 
   for (const file of filesMetadata) {
-    const oldFile = oldFiles.find(f => f.fileName === file.fileName);
+    const relPath = path
+      .relative(ROOT_RESOURCES_PATH, path.join(localPath, file.fileName))
+      .replace(/\\/g, '/');
+
+    flatPaths.push(relPath);
+    const oldFile = oldFiles.find((f) => f.fileName === file.fileName);
     if (oldFile && oldFile.hash === file.hash) {
       console.log(`Skipped unchanged: ${file.fileName}`);
       continue;
@@ -158,25 +166,8 @@ async function processResourceFolder(
 
   await uploadManifestToS3(finalManifest, remoteManifestKey);
 
-//   // === Добавляем файлы в registry ===
-//   for (const file of filesMetadata) {
-//     const relPath = path.relative(ROOT_RESOURCES_PATH, path.join(localPath, file.fileName));
-//     const parts = relPath.split(path.sep);
-
-//     let node = registry;
-//     for (let i = 0; i < parts.length; i++) {
-//       const part = parts[i].replace(/\.[^/.]+$/, ''); // Без расширения
-//       if (i === parts.length - 1) {
-//         // Последний элемент — файл
-//         node[part] = relPath.replace(/\\/g, '/'); // нормализуем слеши
-//       } else {
-//         if (!node[part]) node[part] = {};
-//         node = node[part];
-//       }
-//     }
-//   }
-// === Добавляем файлы в registry ===
-for (const file of filesMetadata) {
+  // === Добавляем файлы в registry ===
+  for (const file of filesMetadata) {
     const parts = [file.fileName.replace(/\.[^/.]+$/, '')]; // имя файла без расширения
 
     let node = registry;
@@ -184,7 +175,9 @@ for (const file of filesMetadata) {
       const part = parts[i];
       if (i === parts.length - 1) {
         // Финальный узел — пишем путь
-        const relPath = path.relative(ROOT_RESOURCES_PATH, path.join(localPath, file.fileName)).replace(/\\/g, '/');
+        const relPath = path
+          .relative(ROOT_RESOURCES_PATH, path.join(localPath, file.fileName))
+          .replace(/\\/g, '/');
         node[part] = relPath;
       } else {
         if (!node[part]) node[part] = {};
@@ -200,23 +193,31 @@ for (const file of filesMetadata) {
       const subfolderS3Prefix = `${s3Prefix}${entry.name}/`;
 
       if (!registry[entry.name]) registry[entry.name] = {};
-      await processResourceFolder(subfolderPath, subfolderS3Prefix, registry[entry.name]);
+      await processResourceFolder(
+        subfolderPath,
+        subfolderS3Prefix,
+        registry[entry.name],
+        flatPaths,
+      );
     }
   }
 }
 
 async function main() {
   const registry = {};
-  await processResourceFolder(ROOT_RESOURCES_PATH, '', registry);
+  const flatPaths = [];
+  await processResourceFolder(ROOT_RESOURCES_PATH, '', registry, flatPaths);
 
-  const content =
-    `export const RESOURCES = ${JSON.stringify(registry, null, 2)};\n`;
+  const content = `
+export const RESOURCES = ${JSON.stringify(registry, null, 2)};
+export const RESOURCE_PATHS = ${JSON.stringify(flatPaths, null, 2)};
+`;
 
   await fs.writeFile(OUTPUT_RESOURCES_TS, content, 'utf-8');
   console.log(`✅ resources.ts generated: ${OUTPUT_RESOURCES_TS}`);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Error:', err);
   process.exit(1);
 });
