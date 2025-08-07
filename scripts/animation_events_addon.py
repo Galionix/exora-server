@@ -114,8 +114,7 @@ class EventTemplate(PropertyGroup):
 class EventInstance(PropertyGroup):
     template_name: StringProperty(
         name="Template",
-        description="Name of the template this instance uses",
-        update=lambda self, context: update_event_instance(self, context)
+        description="Name of the template this instance uses"
     )
     frame: IntProperty(
         name="Frame",
@@ -133,6 +132,18 @@ class EventSystemProperties(PropertyGroup):
     event_instances: CollectionProperty(type=EventInstance)
     active_template_index: IntProperty(default=0)
     active_instance_index: IntProperty(default=0)
+    # Added: Property for collapsing template settings section
+    show_template_settings: BoolProperty(
+        name="Show Template Settings",
+        description="Show/hide template configuration panel",
+        default=False
+    )
+    # Added: Property for collapsing template tools section
+    show_template_tools: BoolProperty(
+        name="Show Template Tools",
+        description="Show/hide template tools panel",
+        default=False
+    )
 
 # UI Lists for custom fields
 class EVENT_UL_fields(UIList):
@@ -188,61 +199,114 @@ class EVENT_PT_panel(Panel):
         col.operator("event.add_template", icon='ADD', text="")
         col.operator("event.remove_template", icon='REMOVE', text="")
 
-        # Template properties
+        # Collapsible template settings section
         if events.event_templates and events.active_template_index < len(events.event_templates):
-            template = events.event_templates[events.active_template_index]
-            box = layout.box()
-            box.prop(template, "name")
-            box.prop(template, "description")
-            box.prop(template, "color")
+            # Button for collapsing/expanding
+            header_row = layout.row(align=True)
+            icon = 'DOWNARROW_HLT' if events.show_template_settings else 'RIGHTARROW'
+            header_row.prop(events, "show_template_settings",
+                          text="Template Settings",
+                          icon=icon,
+                          emboss=False)
 
-            # Custom Fields for Template
-            box.separator()
-            box.label(text="Custom Fields:", icon='PROPERTIES')
+            # Show settings only if expanded
+            if events.show_template_settings:
+                template = events.event_templates[events.active_template_index]
 
-            field_row = box.row()
-            field_row.template_list("EVENT_UL_fields", "", template, "custom_fields",
-                                   template, "active_field_index")
+                # Main template settings in a compact box
+                box = layout.box()
+                box.use_property_split = True
+                box.use_property_decorate = False
 
-            field_col = field_row.column(align=True)
-            field_col.operator("event.add_field", icon='ADD', text="")
-            field_col.operator("event.remove_field", icon='REMOVE', text="")
+                box.prop(template, "name")
+                box.prop(template, "description")
+                box.prop(template, "color")
 
-            # Field properties
-            if template.custom_fields and template.active_field_index < len(template.custom_fields):
-                field = template.custom_fields[template.active_field_index]
-                field_box = box.box()
-                field_box.prop(field, "name")
-                field_box.prop(field, "field_type")
-                field_box.prop(field, "description")
+                # Custom Fields for Template
+                box.separator()
+                fields_header = box.row()
+                fields_header.label(text="Custom Fields:", icon='PROPERTIES')
 
-                # Default value based on type
-                if field.field_type == 'BOOL':
-                    field_box.prop(field, "default_bool")
-                elif field.field_type == 'STRING':
-                    field_box.prop(field, "default_string")
-                elif field.field_type == 'INT':
-                    field_box.prop(field, "default_int")
-                elif field.field_type == 'FLOAT':
-                    field_box.prop(field, "default_float")
-                elif field.field_type == 'ARRAY':
-                    field_box.prop(field, "default_array")
-                elif field.field_type == 'ENUM':
-                    field_box.prop(field, "enum_options")
-                    field_box.prop(field, "default_enum")
-                    # Show preview of enum options
-                    if field.enum_options:
-                        options = [opt.strip() for opt in field.enum_options.split(',') if opt.strip()]
-                        field_box.label(text=f"Options: {', '.join(options)}", icon='INFO')
+                field_row = box.row()
+                field_row.template_list("EVENT_UL_fields", "", template, "custom_fields",
+                                       template, "active_field_index")
 
-        # Template Tools Section
-        if events.event_templates:
-            layout.separator()
+                field_col = field_row.column(align=True)
+                field_col.operator("event.add_field", icon='ADD', text="")
+                field_col.operator("event.remove_field", icon='REMOVE', text="")
+
+                # Field properties
+                if template.custom_fields and template.active_field_index < len(template.custom_fields):
+                    field = template.custom_fields[template.active_field_index]
+                    field_box = box.box()
+                    field_box.use_property_split = True
+                    field_box.use_property_decorate = False
+
+                    field_box.prop(field, "name")
+                    field_box.prop(field, "field_type")
+                    field_box.prop(field, "description")
+
+                    # Default value based on type
+                    if field.field_type == 'BOOL':
+                        field_box.prop(field, "default_bool", text="Default Value")
+                    elif field.field_type == 'STRING':
+                        field_box.prop(field, "default_string", text="Default Value")
+                    elif field.field_type == 'INT':
+                        field_box.prop(field, "default_int", text="Default Value")
+                    elif field.field_type == 'FLOAT':
+                        field_box.prop(field, "default_float", text="Default Value")
+                    elif field.field_type == 'ARRAY':
+                        field_box.prop(field, "default_array", text="Default Value")
+                    elif field.field_type == 'ENUM':
+                        field_box.prop(field, "enum_options", text="Options (comma-separated)")
+                        field_box.prop(field, "default_enum", text="Default Value")
+                        # Show preview of enum options
+                        if field.enum_options:
+                            options = [opt.strip() for opt in field.enum_options.split(',') if opt.strip()]
+                            preview_box = field_box.box()
+                            preview_box.scale_y = 0.7
+                            preview_row = preview_box.row()
+                            preview_row.alignment = 'CENTER'
+                            preview_row.label(text=f"Preview: {', '.join(options)}", icon='INFO')
+
+        # Template Tools Section - always available and collapsible
+        layout.separator()
+
+        # Button for collapsing/expanding Template Tools
+        tools_header_row = layout.row(align=True)
+        tools_icon = 'DOWNARROW_HLT' if events.show_template_tools else 'RIGHTARROW'
+        tools_header_row.prop(events, "show_template_tools",
+                             text="Template Tools",
+                             icon=tools_icon,
+                             emboss=False)
+
+        # Show tools only if expanded
+        if events.show_template_tools:
             template_tools = layout.box()
-            template_tools.label(text="Template Tools:", icon='TOOL_SETTINGS')
+            template_tools.use_property_split = True
+            template_tools.use_property_decorate = False
+
+            # Information about state
+            if events.event_templates:
+                info_row = template_tools.row()
+                info_row.label(text=f"Templates: {len(events.event_templates)}", icon='INFO')
+            else:
+                info_row = template_tools.row()
+                info_row.label(text="No templates - import palette to get started", icon='INFO')
+
+            template_tools.separator()
+
+            # Import/Export buttons
             template_row = template_tools.row(align=True)
-            template_row.operator("event.export_palette", text="Export Palette", icon='EXPORT')
             template_row.operator("event.import_palette", text="Import Palette", icon='IMPORT')
+
+            # Export available only if templates exist
+            export_col = template_row.column(align=True)
+            if events.event_templates:
+                export_col.operator("event.export_palette", text="Export Palette", icon='EXPORT')
+            else:
+                export_col.enabled = False
+                export_col.operator("event.export_palette", text="Export Palette (No Templates)", icon='EXPORT')
 
         layout.separator()
 
@@ -258,7 +322,7 @@ class EVENT_PT_panel(Panel):
 
         layout.separator()
 
-        # Timeline Events Section
+        # Timeline Events Section (remains unchanged)
         layout.label(text="Timeline Events:", icon='MARKER')
 
         if events.event_instances:
@@ -270,14 +334,6 @@ class EVENT_PT_panel(Panel):
                 instance = events.event_instances[events.active_instance_index]
                 box = layout.box()
                 box.label(text="Edit Selected Event:", icon='PROPERTIES')
-
-                # Template selector with available templates
-                row = box.row()
-                row.label(text="Template:")
-                if events.event_templates:
-                    row.prop_search(instance, "template_name", events, "event_templates", text="")
-                else:
-                    row.label(text="No templates available", icon='ERROR')
 
                 # Frame editor
                 row = box.row()
@@ -635,107 +691,6 @@ class EVENT_OT_clear_all_events(Operator):
     def invoke(self, context, event):
         return context.window_manager.invoke_confirm(self, event)
 
-def update_event_instance(self, context):
-    """Called when template_name is changed"""
-    scene = context.scene
-    events = scene.event_system
-
-    # Validate that the template exists
-    template_exists = False
-    selected_template = None
-    for template in events.event_templates:
-        if template.name == self.template_name:
-            template_exists = True
-            selected_template = template
-            break
-
-    if not template_exists and self.template_name:
-        # If template doesn't exist, revert to first available template
-        if events.event_templates:
-            self.template_name = events.event_templates[0].name
-            selected_template = events.event_templates[0]
-        else:
-            self.template_name = ""
-            return
-
-    # Update field values to match template
-    if selected_template:
-        # ИСПРАВЛЕНО: Сохраняем существующие значения полей перед очисткой
-        existing_values = {}
-        for field_value in self.field_values:
-            if field_value.field_type == 'BOOL':
-                existing_values[field_value.name] = field_value.bool_value
-            elif field_value.field_type == 'STRING':
-                existing_values[field_value.name] = field_value.string_value
-            elif field_value.field_type == 'INT':
-                existing_values[field_value.name] = field_value.int_value
-            elif field_value.field_type == 'FLOAT':
-                existing_values[field_value.name] = field_value.float_value
-            elif field_value.field_type == 'ARRAY':
-                existing_values[field_value.name] = field_value.array_value
-            elif field_value.field_type == 'ENUM':
-                existing_values[field_value.name] = field_value.enum_value
-
-        # Clear existing field values
-        self.field_values.clear()
-
-        # Add field values from new template
-        for field in selected_template.custom_fields:
-            field_value = self.field_values.add()
-            field_value.name = field.name
-            field_value.field_type = field.field_type
-
-            # ИСПРАВЛЕНО: Восстанавливаем существующие значения или используем дефолтные
-            field_key = field.name
-            if field_key in existing_values:
-                # Восстанавливаем существующее значение
-                if field.field_type == 'BOOL':
-                    field_value.bool_value = existing_values[field_key]
-                elif field.field_type == 'STRING':
-                    field_value.string_value = existing_values[field_key]
-                elif field.field_type == 'INT':
-                    field_value.int_value = existing_values[field_key]
-                elif field.field_type == 'FLOAT':
-                    field_value.float_value = existing_values[field_key]
-                elif field.field_type == 'ARRAY':
-                    field_value.array_value = existing_values[field_key]
-                elif field.field_type == 'ENUM':
-                    field_value.enum_value = existing_values[field_key]
-                    # Set the selection property too
-                    if hasattr(field_value, 'enum_selection'):
-                        try:
-                            field_value.enum_selection = existing_values[field_key]
-                        except:
-                            pass
-            else:
-                # Используем дефолтные значения для новых полей
-                if field.field_type == 'BOOL':
-                    field_value.bool_value = field.default_bool
-                elif field.field_type == 'STRING':
-                    field_value.string_value = field.default_string
-                elif field.field_type == 'INT':
-                    field_value.int_value = field.default_int
-                elif field.field_type == 'FLOAT':
-                    field_value.float_value = field.default_float
-                elif field.field_type == 'ARRAY':
-                    field_value.array_value = field.default_array
-                elif field.field_type == 'ENUM':
-                    field_value.enum_value = field.default_enum
-                    # Set the selection property too
-                    if hasattr(field_value, 'enum_selection'):
-                        try:
-                            field_value.enum_selection = field.default_enum
-                        except:
-                            pass
-
-    # Find and update the marker name
-    for marker in scene.timeline_markers:
-        if marker.name == self.marker_name:
-            new_name = f"{self.template_name}_{self.frame}"
-            marker.name = new_name
-            self.marker_name = new_name
-            break
-
 def update_event_frame(self, context):
     """Called when frame is changed"""
     scene = context.scene
@@ -878,22 +833,31 @@ class EVENT_OT_import_events(Operator):
             return {'CANCELLED'}
 
         try:
+            print("\n" + "="*80)
+            print("🔍 ДЕТАЛЬНЫЙ ЛОГ ИМПОРТА СОБЫТИЙ")
+            print("="*80)
+
             with open(self.filepath, "r", encoding='utf-8') as f:
                 events_data = json.load(f)
 
+            print(f"📁 Импортируем файл: {os.path.basename(self.filepath)}")
+            print(f"📊 Структура файла: {list(events_data.keys())}")
+
             # Проверяем структуру файла
-            if "templates" not in events_data and "events" not in events_data:
-                self.report({'ERROR'}, "Invalid events file format")
+            if "events" not in events_data:
+                self.report({'ERROR'}, "Invalid events file format - missing 'events' section")
                 return {'CANCELLED'}
 
             events = context.scene.event_system
             scene = context.scene
 
-            # Clear existing data
-            events.event_templates.clear()
+            print(f"\n🗑️  ОЧИСТКА ДАННЫХ:")
+            print(f"   Событий до очистки: {len(events.event_instances)}")
+
+            # Очищаем только события
             events.event_instances.clear()
 
-            # Clear existing markers
+            # Очищаем только маркеры от событий
             markers_to_remove = []
             for marker in scene.timeline_markers:
                 for instance in events.event_instances:
@@ -904,11 +868,26 @@ class EVENT_OT_import_events(Operator):
             for marker in markers_to_remove:
                 scene.timeline_markers.remove(marker)
 
-            # Import templates with custom fields
+            print(f"   Удалено маркеров: {len(markers_to_remove)}")
+
+            # ИСПРАВЛЕНО: Импортируем шаблоны из файла если они есть
+            templates_imported = 0
             for template_data in events_data.get("templates", []):
                 if "name" not in template_data:
                     continue
 
+                # Проверяем, есть ли уже такой шаблон
+                existing_template = None
+                for template in events.event_templates:
+                    if template.name == template_data["name"]:
+                        existing_template = template
+                        break
+
+                if existing_template:
+                    # Шаблон уже существует - пропускаем
+                    continue
+
+                # Создаем новый шаблон только если его нет
                 template = events.event_templates.add()
                 template.name = template_data["name"]
                 template.description = template_data.get("description", "")
@@ -947,74 +926,218 @@ class EVENT_OT_import_events(Operator):
                         else:
                             field.enum_options = str(enum_options)
 
-            # Import events with field values
-            for event_data in events_data.get("events", []):
-                if "frame" not in event_data or "template_name" not in event_data:
-                    continue
+                templates_imported += 1
 
-                frame = event_data["frame"]
-                template_name = event_data["template_name"]
+            if templates_imported > 0:
+                print(f"\n📋 ИМПОРТИРОВАНЫ ШАБЛОНЫ: {templates_imported}")
 
-                # Create marker
-                marker_name = f"{template_name}_{frame}"
-                marker = scene.timeline_markers.new(marker_name, frame=frame)
+            # ИСПРАВЛЕНО: Умный импорт событий с проверкой палетки
+            events_imported = 0
+            errors = []
 
-                # Create instance
-                instance = events.event_instances.add()
-                instance.template_name = template_name
-                instance.frame = frame
-                instance.marker_name = marker_name
+            print(f"\n📥 ИМПОРТ СОБЫТИЙ:")
+            events_in_file = events_data.get("events", [])
+            print(f"   Событий в файле: {len(events_in_file)}")
 
-                # Import field values
-                field_values_data = event_data.get("field_values", {})
-                for field_name, field_value in field_values_data.items():
-                    field_val = instance.field_values.add()
-                    field_val.name = field_name
+            for event_index, event_data in enumerate(events_in_file):
+                print(f"\n   📌 СОБЫТИЕ #{event_index}:")
+                print(f"      Данные из файла: {event_data}")
 
-                    # Determine field type from template
-                    field_type = 'STRING'  # default
+                try:
+                    # Проверяем обязательные поля события
+                    if "frame" not in event_data:
+                        errors.append(f"Event #{event_index}: missing 'frame' field")
+                        continue
+
+                    if "template_name" not in event_data:
+                        errors.append(f"Event #{event_index}: missing 'template_name' field")
+                        continue
+
+                    if "field_values" not in event_data:
+                        errors.append(f"Event #{event_index}: missing 'field_values' field")
+                        continue
+
+                    frame = event_data["frame"]
+                    template_name = event_data["template_name"]
+                    field_values_data = event_data["field_values"]
+
+                    print(f"      ✅ Шаблон: {template_name}")
+                    print(f"      ✅ Кадр: {frame}")
+                    print(f"      ✅ Полей в файле: {len(field_values_data)}")
+
+                    # ИСПРАВЛЕНО: Ищем шаблон в палетке
+                    template_found = None
                     for template in events.event_templates:
                         if template.name == template_name:
-                            for field in template.custom_fields:
-                                if field.name == field_name:
-                                    field_type = field.field_type
-                                    break
+                            template_found = template
                             break
 
-                    field_val.field_type = field_type
+                    print(f"      🔍 Шаблон в палетке: {'найден' if template_found else 'НЕ найден'}")
 
-                    try:
-                        if field_type == 'BOOL':
-                            field_val.bool_value = bool(field_value)
-                        elif field_type == 'STRING':
-                            field_val.string_value = str(field_value)
-                        elif field_type == 'INT':
-                            field_val.int_value = int(field_value)
-                        elif field_type == 'FLOAT':
-                            field_val.float_value = float(field_value)
-                        elif field_type == 'ARRAY':
-                            if isinstance(field_value, list):
-                                field_val.array_value = ','.join(str(x) for x in field_value)
+                    # Create marker
+                    marker_name = f"{template_name}_{frame}"
+                    marker = scene.timeline_markers.new(marker_name, frame=frame)
+                    print(f"      🏷️  Создан маркер: {marker_name}")
+
+                    # Create instance
+                    instance = events.event_instances.add()
+                    instance.template_name = template_name
+                    instance.frame = frame
+                    instance.marker_name = marker_name
+                    print(f"      📋 Создан экземпляр события")
+
+                    # ИСПРАВЛЕНО: Умное создание полей с проверкой палетки
+                    print(f"      🔧 СОЗДАНИЕ ПОЛЕЙ:")
+                    for field_name, file_field_value in field_values_data.items():
+                        print(f"         🔸 Поле '{field_name}': {file_field_value} (тип JSON: {type(file_field_value).__name__})")
+
+                        # ИСПРАВЛЕНО: Сначала ищем определение поля в палетке
+                        field_definition = None
+                        if template_found:
+                            for field in template_found.custom_fields:
+                                if field.name == field_name:
+                                    field_definition = field
+                                    break
+
+                        # Создаем поле
+                        field_val = instance.field_values.add()
+                        field_val.name = field_name
+
+                        if field_definition:
+                            # ЕСТЬ определение в палетке - используем тип из палетки
+                            field_val.field_type = field_definition.field_type
+                            print(f"            🎨 Тип из палетки: {field_definition.field_type}")
+
+                            # Устанавливаем значение с учетом типа палетки
+                            try:
+                                if field_definition.field_type == 'BOOL':
+                                    field_val.bool_value = bool(file_field_value)
+                                    print(f"            ➡️  Установлено: BOOL = {field_val.bool_value}")
+                                elif field_definition.field_type == 'STRING':
+                                    field_val.string_value = str(file_field_value)
+                                    print(f"            ➡️  Установлено: STRING = '{field_val.string_value}'")
+                                elif field_definition.field_type == 'INT':
+                                    field_val.int_value = int(file_field_value)
+                                    print(f"            ➡️  Установлено: INT = {field_val.int_value}")
+                                elif field_definition.field_type == 'FLOAT':
+                                    field_val.float_value = float(file_field_value)
+                                    print(f"            ➡️  Установлено: FLOAT = {field_val.float_value}")
+                                elif field_definition.field_type == 'ARRAY':
+                                    if isinstance(file_field_value, list):
+                                        field_val.array_value = ','.join(str(x) for x in file_field_value)
+                                    else:
+                                        field_val.array_value = str(file_field_value)
+                                    print(f"            ➡️  Установлено: ARRAY = '{field_val.array_value}'")
+                                elif field_definition.field_type == 'ENUM':
+                                    field_val.enum_value = str(file_field_value)
+                                    print(f"            ➡️  Установлено: ENUM = '{field_val.enum_value}'")
+                                    # Set the selection property too
+                                    if hasattr(field_val, 'enum_selection'):
+                                        try:
+                                            field_val.enum_selection = str(file_field_value)
+                                        except:
+                                            pass
+                            except (ValueError, TypeError) as e:
+                                print(f"            ⚠️  Ошибка конвертации: {e}, используем строку")
+                                field_val.field_type = 'STRING'
+                                field_val.string_value = str(file_field_value)
+                        else:
+                            # НЕТ определения в палетке - определяем тип по JSON
+                            print(f"            🔍 Поле НЕ найдено в палетке, определяем тип по JSON")
+
+                            if isinstance(file_field_value, bool):
+                                field_val.field_type = 'BOOL'
+                                field_val.bool_value = file_field_value
+                                print(f"            ➡️  Установлено: BOOL = {field_val.bool_value}")
+                            elif isinstance(file_field_value, str):
+                                field_val.field_type = 'STRING'
+                                field_val.string_value = file_field_value
+                                print(f"            ➡️  Установлено: STRING = '{field_val.string_value}'")
+                            elif isinstance(file_field_value, int):
+                                field_val.field_type = 'INT'
+                                field_val.int_value = file_field_value
+                                print(f"            ➡️  Установлено: INT = {field_val.int_value}")
+                            elif isinstance(file_field_value, float):
+                                field_val.field_type = 'FLOAT'
+                                field_val.float_value = file_field_value
+                                print(f"            ➡️  Установлено: FLOAT = {field_val.float_value}")
+                            elif isinstance(file_field_value, list):
+                                field_val.field_type = 'ARRAY'
+                                field_val.array_value = ','.join(str(x) for x in file_field_value)
+                                print(f"            ➡️  Установлено: ARRAY = '{field_val.array_value}'")
                             else:
-                                field_val.array_value = str(field_value)
-                        elif field_type == 'ENUM':
-                            field_val.enum_value = str(field_value)
-                            # Set the selection property too
-                            if hasattr(field_val, 'enum_selection'):
-                                try:
-                                    field_val.enum_selection = str(field_value)
-                                except:
-                                    pass
-                    except (ValueError, TypeError):
-                        # Если не удается конвертировать, используем строковое представление
-                        field_val.string_value = str(field_value)
+                                # Неизвестный тип - сохраняем как строку
+                                field_val.field_type = 'STRING'
+                                field_val.string_value = str(file_field_value)
+                                print(f"            ➡️  Установлено: STRING (fallback) = '{field_val.string_value}'")
 
-            self.report({'INFO'}, f"Events imported from {os.path.basename(self.filepath)}")
+                    events_imported += 1
+                    print(f"      ✅ Событие успешно создано!")
+
+                except Exception as e:
+                    error_msg = f"Event #{event_index} (frame {event_data.get('frame', 'unknown')}): {str(e)}"
+                    errors.append(error_msg)
+                    print(f"      ❌ ОШИБКА: {error_msg}")
+
+            # ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Выводим что получилось в итоге
+            print(f"\n🔍 ПРОВЕРКА РЕЗУЛЬТАТА:")
+            print(f"   Создано событий: {len(events.event_instances)}")
+
+            for i, instance in enumerate(events.event_instances):
+                print(f"\n   📌 ИТОГОВОЕ СОБЫТИЕ #{i}:")
+                print(f"      Шаблон: {instance.template_name}")
+                print(f"      Кадр: {instance.frame}")
+                print(f"      Маркер: {instance.marker_name}")
+                print(f"      Полей: {len(instance.field_values)}")
+
+                for field_value in instance.field_values:
+                    actual_val = "НЕИЗВЕСТНО"
+                    if field_value.field_type == 'BOOL':
+                        actual_val = field_value.bool_value
+                    elif field_value.field_type == 'STRING':
+                        actual_val = f"'{field_value.string_value}'"
+                    elif field_value.field_type == 'INT':
+                        actual_val = field_value.int_value
+                    elif field_value.field_type == 'FLOAT':
+                        actual_val = field_value.float_value
+                    elif field_value.field_type == 'ARRAY':
+                        actual_val = f"'{field_value.array_value}'"
+                    elif field_value.field_type == 'ENUM':
+                        actual_val = f"'{field_value.enum_value}'"
+
+                    print(f"         🔸 {field_value.name} ({field_value.field_type}): {actual_val}")
+
+            # Сообщаем результат
+            if errors:
+                error_msg = f"Import completed with {len(errors)} errors:\n" + "\n".join(errors[:5])
+                if len(errors) > 5:
+                    error_msg += f"\n... and {len(errors) - 5} more errors"
+                self.report({'WARNING'}, error_msg)
+
+            # ИСПРАВЛЕНО: Более информативное сообщение
+            report_parts = []
+            if events_imported > 0:
+                report_parts.append(f"{events_imported} events")
+            if templates_imported > 0:
+                report_parts.append(f"{templates_imported} new templates")
+
+            if report_parts:
+                self.report({'INFO'}, f"Imported {' and '.join(report_parts)} from {os.path.basename(self.filepath)}")
+            else:
+                self.report({'WARNING'}, f"No data imported from {os.path.basename(self.filepath)}")
+
+            print("\n" + "="*80)
+            print("✅ ИМПОРТ ЗАВЕРШЕН - проверьте консоль выше для деталей")
+            print("="*80)
 
         except json.JSONDecodeError as e:
+            print(f"❌ ОШИБКА JSON: {str(e)}")
             self.report({'ERROR'}, f"Invalid JSON file: {str(e)}")
+            return {'CANCELLED'}
         except Exception as e:
+            print(f"❌ ОБЩАЯ ОШИБКА: {str(e)}")
             self.report({'ERROR'}, f"Import failed: {str(e)}")
+            return {'CANCELLED'}
 
         return {'FINISHED'}
 

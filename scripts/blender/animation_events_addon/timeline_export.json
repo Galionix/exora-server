@@ -2,37 +2,13 @@
   "events": [
     {
       "template_name": "Footstep",
-      "frame": 40,
-      "time": 1.6666666666666667,
-      "field_values": {
-        "foot_type": "both",
-        "surface_type": "grass",
-        "movement_type": "walk",
-        "volume": 0.800000011920929,
-        "pitch_variation": "normal"
-      }
-    },
-    {
-      "template_name": "Footstep",
-      "frame": 15,
-      "time": 0.625,
+      "frame": 1,
+      "time": 0.041666666666666664,
       "field_values": {
         "foot_type": "right",
-        "surface_type": "grass",
-        "movement_type": "walk",
-        "volume": 0.800000011920929,
-        "pitch_variation": "normal"
-      }
-    },
-    {
-      "template_name": "Footstep",
-      "frame": 70,
-      "time": 2.9166666666666665,
-      "field_values": {
-        "foot_type": "left",
-        "surface_type": "grass",
-        "movement_type": "walk",
-        "volume": 0.800000011920929,
+        "surface_type": "sand",
+        "movement_type": "backwards",
+        "volume": 1.5199999809265137,
         "pitch_variation": "normal"
       }
     }
