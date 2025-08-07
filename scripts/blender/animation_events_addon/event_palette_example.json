@@ -1,0 +1,540 @@
+{
+  "templates": [
+    {
+      "name": "Footstep",
+      "description": "Character footstep sound event",
+      "color": [0.3, 0.8, 0.3],
+      "custom_fields": [
+        {
+          "name": "foot_type",
+          "type": "ENUM",
+          "description": "Which foot is stepping",
+          "default_value": "left",
+          "enum_options": ["left", "right", "both"]
+        },
+        {
+          "name": "surface_type",
+          "type": "ENUM",
+          "description": "Type of surface being stepped on",
+          "default_value": "grass",
+          "enum_options": ["grass", "dirt", "stone", "wood", "metal", "water", "sand", "snow", "mud", "gravel"]
+        },
+        {
+          "name": "movement_type",
+          "type": "ENUM",
+          "description": "Type of movement",
+          "default_value": "walk",
+          "enum_options": ["walk", "run", "sneak", "sprint", "crouch", "backwards"]
+        },
+        {
+          "name": "volume",
+          "type": "FLOAT",
+          "description": "Volume level (0.0 - 1.0)",
+          "default_value": 0.8
+        },
+        {
+          "name": "pitch_variation",
+          "type": "ENUM",
+          "description": "Pitch variation for variety",
+          "default_value": "normal",
+          "enum_options": ["low", "normal", "high", "random"]
+        }
+      ]
+    },
+    {
+      "name": "Attack_Hit",
+      "description": "Weapon hit event with damage calculation",
+      "color": [1.0, 0.2, 0.2],
+      "custom_fields": [
+        {
+          "name": "weapon_type",
+          "type": "ENUM",
+          "description": "Type of weapon used",
+          "default_value": "sword",
+          "enum_options": ["sword", "axe", "mace", "dagger", "bow", "crossbow", "staff", "wand", "fist", "spear"]
+        },
+        {
+          "name": "attack_type",
+          "type": "ENUM",
+          "description": "Type of attack performed",
+          "default_value": "slash",
+          "enum_options": ["slash", "stab", "crush", "pierce", "ranged", "magic", "elemental", "critical"]
+        },
+        {
+          "name": "hit_location",
+          "type": "ENUM",
+          "description": "Where the hit landed",
+          "default_value": "torso",
+          "enum_options": ["head", "torso", "arms", "legs", "shield", "armor", "weak_spot"]
+        },
+        {
+          "name": "damage",
+          "type": "INT",
+          "description": "Base damage amount",
+          "default_value": 100
+        },
+        {
+          "name": "damage_type",
+          "type": "ENUM",
+          "description": "Type of damage dealt",
+          "default_value": "physical",
+          "enum_options": ["physical", "fire", "ice", "lightning", "poison", "holy", "dark", "arcane"]
+        },
+        {
+          "name": "hit_intensity",
+          "type": "ENUM",
+          "description": "Intensity of the hit",
+          "default_value": "medium",
+          "enum_options": ["light", "medium", "heavy", "devastating", "glancing"]
+        },
+        {
+          "name": "knockback_force",
+          "type": "FLOAT",
+          "description": "Force applied to target",
+          "default_value": 5.0
+        }
+      ]
+    },
+    {
+      "name": "Audio_SFX",
+      "description": "Generic sound effect event",
+      "color": [0.2, 0.6, 1.0],
+      "custom_fields": [
+        {
+          "name": "audio_category",
+          "type": "ENUM",
+          "description": "Category of sound effect",
+          "default_value": "combat",
+          "enum_options": ["combat", "environment", "ui", "voice", "music", "ambient", "mechanical", "magical"]
+        },
+        {
+          "name": "audio_file",
+          "type": "STRING",
+          "description": "Name of audio file to play",
+          "default_value": "sword_clash.wav"
+        },
+        {
+          "name": "priority",
+          "type": "ENUM",
+          "description": "Audio playback priority",
+          "default_value": "normal",
+          "enum_options": ["low", "normal", "high", "critical", "music"]
+        },
+        {
+          "name": "volume",
+          "type": "FLOAT",
+          "description": "Volume multiplier",
+          "default_value": 1.0
+        },
+        {
+          "name": "pitch_mode",
+          "type": "ENUM",
+          "description": "Pitch modification mode",
+          "default_value": "normal",
+          "enum_options": ["normal", "random", "low", "high", "reverse"]
+        },
+        {
+          "name": "spatial_type",
+          "type": "ENUM",
+          "description": "Spatial audio type",
+          "default_value": "3d",
+          "enum_options": ["2d", "3d", "stereo", "surround", "positional"]
+        },
+        {
+          "name": "reverb_zone",
+          "type": "ENUM",
+          "description": "Reverb environment",
+          "default_value": "outdoor",
+          "enum_options": ["outdoor", "indoor", "cave", "hall", "church", "underwater", "space", "custom"]
+        }
+      ]
+    },
+    {
+      "name": "Spell_Cast",
+      "description": "Magic spell casting event",
+      "color": [0.8, 0.3, 0.8],
+      "custom_fields": [
+        {
+          "name": "spell_school",
+          "type": "ENUM",
+          "description": "School of magic",
+          "default_value": "evocation",
+          "enum_options": ["evocation", "conjuration", "transmutation", "illusion", "enchantment", "divination", "necromancy", "abjuration"]
+        },
+        {
+          "name": "spell_element",
+          "type": "ENUM",
+          "description": "Elemental type of spell",
+          "default_value": "fire",
+          "enum_options": ["fire", "water", "earth", "air", "lightning", "ice", "nature", "arcane", "holy", "shadow"]
+        },
+        {
+          "name": "spell_level",
+          "type": "ENUM",
+          "description": "Spell power level",
+          "default_value": "level_1",
+          "enum_options": ["cantrip", "level_1", "level_2", "level_3", "level_4", "level_5", "epic", "legendary"]
+        },
+        {
+          "name": "casting_style",
+          "type": "ENUM",
+          "description": "How the spell is cast",
+          "default_value": "verbal",
+          "enum_options": ["verbal", "somatic", "material", "focus", "ritual", "instant", "channeled"]
+        },
+        {
+          "name": "target_type",
+          "type": "ENUM",
+          "description": "Type of spell target",
+          "default_value": "single",
+          "enum_options": ["self", "single", "area", "cone", "line", "chain", "global", "random"]
+        },
+        {
+          "name": "mana_cost",
+          "type": "INT",
+          "description": "Mana points consumed",
+          "default_value": 50
+        },
+        {
+          "name": "cast_time",
+          "type": "FLOAT",
+          "description": "Time to complete casting (seconds)",
+          "default_value": 2.0
+        },
+        {
+          "name": "spell_effect_intensity",
+          "type": "ENUM",
+          "description": "Visual effect intensity",
+          "default_value": "normal",
+          "enum_options": ["subtle", "normal", "dramatic", "epic", "overwhelming"]
+        }
+      ]
+    },
+    {
+      "name": "Movement_Jump",
+      "description": "Character jump movement event",
+      "color": [1.0, 0.8, 0.2],
+      "custom_fields": [
+        {
+          "name": "jump_type",
+          "type": "ENUM",
+          "description": "Type of jump performed",
+          "default_value": "normal",
+          "enum_options": ["normal", "double", "wall", "long", "high", "dash", "teleport", "glide"]
+        },
+        {
+          "name": "jump_direction",
+          "type": "ENUM",
+          "description": "Direction of jump",
+          "default_value": "up",
+          "enum_options": ["up", "forward", "backward", "left", "right", "diagonal", "down"]
+        },
+        {
+          "name": "surface_interaction",
+          "type": "ENUM",
+          "description": "How jump interacts with surfaces",
+          "default_value": "normal",
+          "enum_options": ["normal", "wall_kick", "ledge_grab", "bounce", "stick", "slide"]
+        },
+        {
+          "name": "jump_height",
+          "type": "FLOAT",
+          "description": "Jump height in units",
+          "default_value": 3.0
+        },
+        {
+          "name": "jump_forward",
+          "type": "FLOAT",
+          "description": "Forward jump distance",
+          "default_value": 2.0
+        },
+        {
+          "name": "stamina_cost",
+          "type": "INT",
+          "description": "Stamina consumed for jump",
+          "default_value": 10
+        },
+        {
+          "name": "landing_type",
+          "type": "ENUM",
+          "description": "Expected landing type",
+          "default_value": "soft",
+          "enum_options": ["soft", "hard", "roll", "stumble", "perfect", "damage"]
+        }
+      ]
+    },
+    {
+      "name": "Pickup_Item",
+      "description": "Item pickup/collection event",
+      "color": [1.0, 1.0, 0.2],
+      "custom_fields": [
+        {
+          "name": "item_category",
+          "type": "ENUM",
+          "description": "Category of item being picked up",
+          "default_value": "consumable",
+          "enum_options": ["weapon", "armor", "consumable", "quest", "material", "treasure", "key", "scroll", "gem"]
+        },
+        {
+          "name": "item_rarity",
+          "type": "ENUM",
+          "description": "Rarity level of the item",
+          "default_value": "common",
+          "enum_options": ["common", "uncommon", "rare", "epic", "legendary", "artifact", "unique"]
+        },
+        {
+          "name": "pickup_method",
+          "type": "ENUM",
+          "description": "How the item is picked up",
+          "default_value": "manual",
+          "enum_options": ["manual", "automatic", "magnetic", "quest_trigger", "proximity", "interaction"]
+        },
+        {
+          "name": "item_id",
+          "type": "STRING",
+          "description": "Unique identifier for the item",
+          "default_value": "health_potion"
+        },
+        {
+          "name": "quantity",
+          "type": "INT",
+          "description": "Number of items picked up",
+          "default_value": 1
+        },
+        {
+          "name": "inventory_action",
+          "type": "ENUM",
+          "description": "What happens to item in inventory",
+          "default_value": "add",
+          "enum_options": ["add", "stack", "replace", "drop", "auto_use", "quest_update"]
+        },
+        {
+          "name": "notification_type",
+          "type": "ENUM",
+          "description": "Type of pickup notification",
+          "default_value": "standard",
+          "enum_options": ["none", "minimal", "standard", "highlighted", "celebration", "quest"]
+        }
+      ]
+    },
+    {
+      "name": "Animation_Trigger",
+      "description": "Generic animation state trigger",
+      "color": [0.5, 0.5, 0.5],
+      "custom_fields": [
+        {
+          "name": "animation_layer",
+          "type": "ENUM",
+          "description": "Which animation layer to affect",
+          "default_value": "base",
+          "enum_options": ["base", "upper_body", "lower_body", "face", "hands", "overlay", "additive"]
+        },
+        {
+          "name": "transition_type",
+          "type": "ENUM",
+          "description": "Type of animation transition",
+          "default_value": "blend",
+          "enum_options": ["instant", "blend", "crossfade", "queue", "interrupt", "overlay"]
+        },
+        {
+          "name": "animation_name",
+          "type": "STRING",
+          "description": "Name of animation to trigger",
+          "default_value": "idle"
+        },
+        {
+          "name": "blend_time",
+          "type": "FLOAT",
+          "description": "Time to blend to new animation",
+          "default_value": 0.2
+        },
+        {
+          "name": "loop_mode",
+          "type": "ENUM",
+          "description": "Animation looping behavior",
+          "default_value": "loop",
+          "enum_options": ["once", "loop", "pingpong", "clamp", "restart"]
+        },
+        {
+          "name": "animation_speed",
+          "type": "FLOAT",
+          "description": "Animation playback speed multiplier",
+          "default_value": 1.0
+        },
+        {
+          "name": "priority",
+          "type": "ENUM",
+          "description": "Animation priority level",
+          "default_value": "normal",
+          "enum_options": ["low", "normal", "high", "critical", "forced"]
+        },
+        {
+          "name": "mirror_mode",
+          "type": "ENUM",
+          "description": "Animation mirroring",
+          "default_value": "none",
+          "enum_options": ["none", "horizontal", "vertical", "both", "auto"]
+        }
+      ]
+    },
+    {
+      "name": "Dialogue_Start",
+      "description": "Dialogue/conversation start event",
+      "color": [0.2, 0.8, 0.8],
+      "custom_fields": [
+        {
+          "name": "dialogue_type",
+          "type": "ENUM",
+          "description": "Type of dialogue interaction",
+          "default_value": "conversation",
+          "enum_options": ["conversation", "monologue", "narration", "thought", "cutscene", "tutorial", "system"]
+        },
+        {
+          "name": "speaker_role",
+          "type": "ENUM",
+          "description": "Role of the speaking character",
+          "default_value": "npc",
+          "enum_options": ["player", "npc", "narrator", "system", "enemy", "ally", "merchant", "quest_giver"]
+        },
+        {
+          "name": "dialogue_mood",
+          "type": "ENUM",
+          "description": "Emotional tone of dialogue",
+          "default_value": "neutral",
+          "enum_options": ["happy", "sad", "angry", "excited", "scared", "confused", "neutral", "mysterious", "urgent"]
+        },
+        {
+          "name": "dialogue_id",
+          "type": "STRING",
+          "description": "Unique dialogue identifier",
+          "default_value": "npc_greeting"
+        },
+        {
+          "name": "speaker_name",
+          "type": "STRING",
+          "description": "Name of the character speaking",
+          "default_value": "Village Elder"
+        },
+        {
+          "name": "ui_style",
+          "type": "ENUM",
+          "description": "Dialogue UI presentation style",
+          "default_value": "standard",
+          "enum_options": ["standard", "cinematic", "minimal", "bubble", "overlay", "fullscreen", "subtitle"]
+        },
+        {
+          "name": "voice_type",
+          "type": "ENUM",
+          "description": "Type of voice acting",
+          "default_value": "full",
+          "enum_options": ["none", "gibberish", "partial", "full", "synthesized", "robotic"]
+        },
+        {
+          "name": "camera_focus",
+          "type": "ENUM",
+          "description": "Camera behavior during dialogue",
+          "default_value": "speaker",
+          "enum_options": ["none", "speaker", "listener", "both", "close_up", "wide", "dynamic"]
+        }
+      ]
+    },
+    {
+      "name": "Environmental_Effect",
+      "description": "Environmental effects and weather events",
+      "color": [0.4, 0.7, 0.4],
+      "custom_fields": [
+        {
+          "name": "effect_type",
+          "type": "ENUM",
+          "description": "Type of environmental effect",
+          "default_value": "weather",
+          "enum_options": ["weather", "lighting", "particle", "atmosphere", "seasonal", "time_of_day"]
+        },
+        {
+          "name": "weather_condition",
+          "type": "ENUM",
+          "description": "Weather condition to trigger",
+          "default_value": "clear",
+          "enum_options": ["clear", "cloudy", "rain", "storm", "snow", "fog", "wind", "drought", "hurricane"]
+        },
+        {
+          "name": "intensity",
+          "type": "ENUM",
+          "description": "Effect intensity level",
+          "default_value": "medium",
+          "enum_options": ["minimal", "light", "medium", "heavy", "extreme", "catastrophic"]
+        },
+        {
+          "name": "duration_type",
+          "type": "ENUM",
+          "description": "How long the effect lasts",
+          "default_value": "temporary",
+          "enum_options": ["instant", "brief", "temporary", "extended", "permanent", "cyclical"]
+        },
+        {
+          "name": "area_coverage",
+          "type": "ENUM",
+          "description": "Area affected by the effect",
+          "default_value": "local",
+          "enum_options": ["point", "local", "area", "region", "global", "indoor", "outdoor"]
+        },
+        {
+          "name": "transition_speed",
+          "type": "ENUM",
+          "description": "How quickly effect changes",
+          "default_value": "gradual",
+          "enum_options": ["instant", "quick", "gradual", "slow", "very_slow"]
+        }
+      ]
+    },
+    {
+      "name": "UI_Interaction",
+      "description": "User interface interaction events",
+      "color": [0.9, 0.5, 0.1],
+      "custom_fields": [
+        {
+          "name": "ui_element",
+          "type": "ENUM",
+          "description": "Type of UI element",
+          "default_value": "button",
+          "enum_options": ["button", "menu", "panel", "popup", "tooltip", "notification", "hud", "inventory"]
+        },
+        {
+          "name": "interaction_type",
+          "type": "ENUM",
+          "description": "Type of interaction",
+          "default_value": "click",
+          "enum_options": ["click", "hover", "drag", "swipe", "keyboard", "gamepad", "voice", "gesture"]
+        },
+        {
+          "name": "ui_state",
+          "type": "ENUM",
+          "description": "UI state change",
+          "default_value": "show",
+          "enum_options": ["show", "hide", "enable", "disable", "highlight", "dim", "animate", "refresh"]
+        },
+        {
+          "name": "feedback_type",
+          "type": "ENUM",
+          "description": "Type of user feedback",
+          "default_value": "visual",
+          "enum_options": ["none", "visual", "audio", "haptic", "combined", "delayed"]
+        },
+        {
+          "name": "animation_style",
+          "type": "ENUM",
+          "description": "UI animation style",
+          "default_value": "fade",
+          "enum_options": ["none", "fade", "slide", "scale", "rotate", "bounce", "elastic", "custom"]
+        },
+        {
+          "name": "priority_level",
+          "type": "ENUM",
+          "description": "UI interaction priority",
+          "default_value": "normal",
+          "enum_options": ["background", "normal", "important", "critical", "blocking"]
+        }
+      ]
+    }
+  ]
+}
